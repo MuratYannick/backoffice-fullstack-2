@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import Button from "./Button";
+
 const ConfirmDialog = ({
   isOpen,
   title,
@@ -21,17 +22,17 @@ const ConfirmDialog = ({
       document.body.style.overflow = "unset";
     };
   }, [isOpen]);
+
   if (!isOpen) return null;
+
   return (
     <div
-      className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full
-z-50"
+      className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50"
     >
       <div className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bgwhite">
         <div className="mt-3 text-center">
           <div
-            className="mx-auto flex items-center justify-center h-12 w-12 rounded-full
-bg-red-100 mb-4"
+            className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100 mb-4"
           >
             <svg
               className="h-6 w-6 text-red-600"
@@ -43,8 +44,7 @@ bg-red-100 mb-4"
                 strokeLinecap="round"
                 strokeLinejoin="round"
                 strokeWidth={2}
-                d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732
-4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"
+                d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"
               />
             </svg>
           </div>
@@ -57,6 +57,7 @@ bg-red-100 mb-4"
             <Button variant="secondary" onClick={onCancel} disabled={loading}>
               {cancelText}
             </Button>
+            
             <Button
               variant={variant}
               onClick={onConfirm}
@@ -71,4 +72,5 @@ bg-red-100 mb-4"
     </div>
   );
 };
+
 export default ConfirmDialog;
