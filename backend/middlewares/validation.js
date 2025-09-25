@@ -3,18 +3,16 @@ const { body, param, validationResult } = require("express-validator");
 // Middleware pour géréer les erreurs de validation
 const handleValidationErrors = (req, res, next) => {
   const errors = validationResult(req);
-  errors.array().map((err) => ( console.log(err)))
+  errors.array().map(err => console.log(err))
   if (!errors.empty) {
     return res.status(400).json({
       success: false,
-      message: "Errors de validation",
-      errors: errors.array().map((err) => (
-        {
-        field: err.path,
+      message: "Erreurs de validation",
+      errors: errors.array().map((err) => ({
+        field: err.path || err.param,
         message: err.msg,
         value: err.value,
-      }
-    )),
+      })),
     });
   }
   next();
@@ -30,16 +28,18 @@ const articleValidationRules = () => {
       .custom(async (value, { req }) => {
         // Vérifier l'unicité du titre (sauf pour l'article en cours de modification)
         const { Article } = require("../models");
+        const whereCondition = { title: value };
+        
+        // TODO: Correction de la syntaxe pour l'exclusion de l'ID lors de la modification
+        if (req.params.id) {
+          const { Op } = require("sequelize");
+          whereCondition.id = { [Op.ne]: req.params.id };
+        }
+        
         const existingArticle = await Article.findOne({
-          where: {
-            title: value,
-            ...Article(
-              req.params.id && {
-                id: { [require("sequelize").Op.ne]: req.params.id },
-              }
-            ),
-          },
+          where: whereCondition,
         });
+        
         if (existingArticle) {
           throw new Error("Un article avec ce titre existe déjà");
         }

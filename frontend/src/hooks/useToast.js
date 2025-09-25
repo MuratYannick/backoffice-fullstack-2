@@ -1,4 +1,5 @@
 import { useState, useCallback } from "react";
+
 export const useToast = () => {
   const [toasts, setToasts] = useState([]);
   const addToast = useCallback((message, type = "info", duration = 5000) => {
@@ -14,10 +15,13 @@ export const useToast = () => {
     }
 
     return id;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
   const removeToast = useCallback((id) => {
     setToasts((prev) => prev.filter((toast) => toast.id !== id));
   }, []);
+
   const success = useCallback(
     (message, duration) => addToast(message, "success", duration),
     [addToast]
@@ -37,6 +41,7 @@ export const useToast = () => {
     (message, duration) => addToast(message, "info", duration),
     [addToast]
   );
+  
   return {
     toasts,
     addToast,

@@ -1,27 +1,171 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import ApiService from "../services/api";
-import { useApi } from "../hooks/useApi";
+import { useToast } from "../hooks/useToast";
 import Table from "../components/ui/Table";
 import Button from "../components/ui/Button";
 import Badge from "../components/ui/Badge";
+import ArticleForm from "../components/ArticleForm";
+import ConfirmDialog from "../components/ui/ConfirmDialog";
+import ToastContainer from "../components/ui/Toast";
 import LoadingSpinner from "../components/LoadingSpinner";
 import ErrorMessage from "../components/ErrorMessage";
 
 export default function Articles() {
   const navigate = useNavigate();
-  const { data, loading, error, refetch } = useApi(() =>
-    ApiService.getArticles()
-  );
+  const { toasts, success, error, removeToast } = useToast();
+
+  const [articles, setArticles] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [loadingError, setLoadingError] = useState(null);
+
+  // États UI
   const [showForm, setShowForm] = useState(false);
-  const [formData, setFormData] = useState({
-    title: "",
-    summary: "",
-    content: "",
-    userId: 1, // Temporaire
-    categoryId: 1, // Temporaire
+  const [editingArticle, setEditingArticle] = useState(null);
+  const [submitting, setSubmitting] = useState(false);
+
+  // États confirmation
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [deletingArticle, setDeletingArticle] = useState(null);
+  const [deleting, setDeleting] = useState(false);
+  // Pagination et filtres
+  const [pagination, setPagination] = useState({
+    currentPage: 1,
+    totalPages: 1,
+    totalItems: 0,
   });
-  const articles = data?.data || [];
+  const [filters,/* setFilters */ ] = useState({
+    status: "",
+    search: "",
+  });
+
+  const loadArticles = async (page = 1, newFilters = filters) => {
+    try {
+      setLoading(true);
+      setLoadingError(null);
+
+      const params = {
+        page,
+        limit: 10,
+        ...newFilters,
+      };
+
+      const response = await ApiService.getArticles(params);
+      setArticles(response.data || []);
+      setPagination(response.pagination || {});
+    } catch (err) {
+      console.error("Erreur chargement articles:", err);
+      setLoadingError(err.message);
+      error("Erreur lors du chargement des articles");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadArticles();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const handleCreateArticle = async (articleData) => {
+    try {
+      setSubmitting(true);
+      const response = await ApiService.createArticle(articleData);
+
+      setArticles((prev) => [response.data, ...prev]);
+      setShowForm(false);
+      success("Article créé avec succès");
+    } catch (err) {
+      console.error("Erreur création:", err);
+      error(err.message || "Erreur lors de la création");
+      throw err;
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleUpdateArticle = async (articleData) => {
+    try {
+      setSubmitting(true);
+      const response = await ApiService.updateArticle(
+        editingArticle.id,
+        articleData
+      );
+
+      setArticles((prev) =>
+        prev.map((article) =>
+          article.id === editingArticle.id ? response.data : article
+        )
+      );
+
+      setShowForm(false);
+      setEditingArticle(null);
+      success("Article modifié avec succès");
+    } catch (err) {
+      console.error("Erreur modification:", err);
+      error(err.message || "Erreur lors de la modification");
+      throw err;
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleDeleteArticle = async () => {
+    try {
+      setDeleting(true);
+      await ApiService.deleteArticle(deletingArticle.id);
+
+      setArticles((prev) =>
+        prev.filter((article) => article.id !== deletingArticle.id)
+      );
+
+      setShowDeleteConfirm(false);
+      setDeletingArticle(null);
+      success("Article supprimé avec succès");
+    } catch (err) {
+      console.error("Erreur suppression:", err);
+      error(err.message || "Erreur lors de la suppression");
+    } finally {
+      setDeleting(false);
+    }
+  };
+
+  const handleDuplicateArticle = async (article) => {
+    try {
+      const response = await ApiService.duplicateArticle(article.id);
+      setArticles((prev) => [response.data, ...prev]);
+      success("Article dupliqué avec succès");
+    } catch (err) {
+      console.error("Erreur duplication:", err);
+      error(err.message || "Erreur lors de la duplication");
+    }
+  };
+
+  const openEditForm = (article) => {
+    setEditingArticle(article);
+    setShowForm(true);
+  };
+
+  const openCreateForm = () => {
+    setEditingArticle(null);
+    setShowForm(true);
+  };
+
+  const closeForm = () => {
+    setShowForm(false);
+    setEditingArticle(null);
+  };
+
+  const openDeleteConfirm = (article) => {
+    setDeletingArticle(article);
+    setShowDeleteConfirm(true);
+  };
+
+  const closeDeleteConfirm = () => {
+    setShowDeleteConfirm(false);
+    setDeletingArticle(null);
+  };
+  
   const columns = [
     {
       key: "id",
@@ -47,10 +191,11 @@ export default function Articles() {
     {
       key: "author",
       label: "Auteur",
-      sortable: true,
       render: (author) => (
         <div className="flex items-center">
-          <div className="h-8 w-8 bg-blue-100 rounded-full flex items-center justify-center mr-3">
+          <div
+            className="h-8 w-8 bg-blue-100 rounded-full flex items-center justify-center mr-3"
+          >
             <span className="text-blue-600 font-medium text-sm">
               {author?.name?.charAt(0) || "?"}
             </span>
@@ -59,7 +204,6 @@ export default function Articles() {
             <div className="text-sm font-medium text-gray-900">
               {author?.name || "Inconnu"}
             </div>
-            <div className="text-sm text-gray-500">{author?.role || ""}</div>
           </div>
         </div>
       ),
@@ -67,7 +211,6 @@ export default function Articles() {
     {
       key: "category",
       label: "Catégorie",
-      sortable: true,
       render: (category) =>
         category ? (
           <Badge
@@ -88,19 +231,13 @@ export default function Articles() {
       label: "Statut",
       sortable: true,
       render: (status) => {
-        const variants = {
-          published: "success",
-          draft: "warning",
-          archived: "default",
+        const config = {
+          published: { variant: "success", label: "Publié" },
+          draft: { variant: "warning", label: "Brouillon" },
+          archived: { variant: "default", label: "Archivé" },
         };
-        const labels = {
-          published: "Publié",
-          draft: "Brouillon",
-          archived: "Archivé",
-        };
-        return (
-          <Badge variant={variants[status]}>{labels[status] || status}</Badge>
-        );
+        const { variant, label } = config[status] || config.draft;
+        return <Badge variant={variant}>{label}</Badge>;
       },
     },
     {
@@ -133,19 +270,6 @@ export default function Articles() {
       ),
     },
     {
-      key: "publishedAt",
-      label: "Publication",
-      sortable: true,
-      render: (date) =>
-        date ? (
-          <div className="text-sm text-gray-600">
-            {new Date(date).toLocaleDateString("fr-FR")}
-          </div>
-        ) : (
-          <span className="text-gray-400">Non publié</span>
-        ),
-    },
-    {
       key: "actions",
       label: "Actions",
       render: (_, row) => (
@@ -165,8 +289,29 @@ export default function Articles() {
             variant="ghost"
             onClick={(e) => {
               e.stopPropagation();
-              // TODO: Implémenter la suppression
+              openEditForm(row);
             }}
+          >
+            Modifier
+          </Button>
+          <Button
+            size="sm"
+            variant="ghost"
+            onClick={(e) => {
+              e.stopPropagation();
+              handleDuplicateArticle(row);
+            }}
+          >
+            Dupliquer
+          </Button>
+          <Button
+            size="sm"
+            variant="ghost"
+            onClick={(e) => {
+              e.stopPropagation();
+              openDeleteConfirm(row);
+            }}
+            className="text-red-600 hover:text-red-700 hover:bg-red-50"
           >
             Supprimer
           </Button>
@@ -174,32 +319,15 @@ export default function Articles() {
       ),
     },
   ];
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    try {
-      await ApiService.createArticle(formData);
-      setFormData({
-        title: "",
-        summary: "",
-        content: "",
-        userId: 1,
-        categoryId: 1,
-      });
-      setShowForm(false);
-      refetch();
-    } catch (error) {
-      alert("Erreur lors de la création: " + error.message);
-    }
-  };
-  const handleInputChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
-    });
-  };
-  if (error) return <ErrorMessage message={error} onRetry={refetch} />;
+  if (loadingError && !loading) {
+    return (
+      <ErrorMessage message={loadingError} onRetry={() => loadArticles()} />
+    );
+  }
   return (
     <div className="space-y-6">
+      <ToastContainer toasts={toasts} onRemoveToast={removeToast} />
+
       {/* Header */}
       <div className="flex justify-between items-center">
         <div>
@@ -208,10 +336,46 @@ export default function Articles() {
             Gérez vos articles de blog et publications
           </p>
         </div>
-        <Button onClick={() => setShowForm(!showForm)}>
-          {showForm ? "Annuler" : "Nouvel Article"}
-        </Button>
+        <Button onClick={openCreateForm}>Nouvel Article</Button>
       </div>
+
+      {/* Modal formulaire */}
+      {showForm && (
+        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full wfull z-40">
+          <div
+            className="relative top-4 mx-auto p-5 border w-full max-w-4xl shadow-lg rounded-md bg-white"
+          >
+            <div className="mb-4">
+              <h3 className="text-lg font-medium text-gray-900">
+                {editingArticle
+                  ? "Modifier l'article"
+                  : "Créer un nouvel article"}
+              </h3>
+            </div>
+
+            <ArticleForm
+              article={editingArticle}
+              onSubmit={
+                editingArticle ? handleUpdateArticle : handleCreateArticle
+              }
+              onCancel={closeForm}
+              loading={submitting}
+            />
+          </div>
+        </div>
+      )}
+
+      {/* Modal confirmation suppression */}
+      <ConfirmDialog
+        isOpen={showDeleteConfirm}
+        title="Supprimer l'article"
+        message={`Êtes-vous sûr de vouloir supprimer l'article "${deletingArticle?.title}"? Cette action est irréversible.`}
+        confirmText="Supprimer"
+        onConfirm={handleDeleteArticle}
+        onCancel={closeDeleteConfirm}
+        loading={deleting}
+      />
+
       {/* Statistiques rapides */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
@@ -234,7 +398,7 @@ export default function Articles() {
             <div className="ml-4">
               <p className="text-sm font-medium text-gray-600">Total</p>
               <p className="text-2xl font-bold text-gray-900">
-                {articles.length}
+                {pagination.totalItems || 0}
               </p>
             </div>
           </div>
@@ -322,71 +486,7 @@ export default function Articles() {
           </div>
         </div>
       </div>
-      {/* Formulaire de création */}
-      {showForm && (
-        <div className="bg-white p-6 rounded-lg shadow-md border border-gray-200">
-          <h2 className="text-lg font-semibold mb-4">
-            Créer un nouvel article
-          </h2>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Titre
-                </label>
-                <input
-                  type="text"
-                  name="title"
-                  value={formData.title}
-                  onChange={handleInputChange}
-                  className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  required
-                />
-              </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Résumé
-                </label>
-                <input
-                  type="text"
-                  name="summary"
-                  value={formData.summary}
-                  onChange={handleInputChange}
-                  className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                />
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Contenu
-              </label>
-              <textarea
-                name="content"
-                value={formData.content}
-                onChange={handleInputChange}
-                rows={6}
-                className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                required
-              />
-            </div>
-
-            <div className="flex space-x-3">
-              <Button type="submit" variant="primary">
-                Créer l'article
-              </Button>
-              <Button
-                type="button"
-                variant="secondary"
-                onClick={() => setShowForm(false)}
-              >
-                Annuler
-              </Button>
-            </div>
-          </form>
-        </div>
-      )}
       {/* Tableau des articles */}
       <Table
         columns={columns}

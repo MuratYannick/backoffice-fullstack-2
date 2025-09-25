@@ -1,18 +1,22 @@
 import { useEffect } from "react";
+
 const Toast = ({ toast, onRemove }) => {
   const { id, message, type } = toast;
+
   useEffect(() => {
     const timer = setTimeout(() => {
       onRemove(id);
     }, 5000);
     return () => clearTimeout(timer);
   }, [id, onRemove]);
+
   const bgColors = {
     success: "bg-green-500",
     error: "bg-red-500",
     warning: "bg-yellow-500",
     info: "bg-blue-500",
   };
+
   const icons = {
     success: (
       <svg
@@ -25,8 +29,7 @@ const Toast = ({ toast, onRemove }) => {
           strokeLinecap="round"
           strokeLinejoin="round"
           strokeWidth={2}
-          d="M5 13l4 4L19
-7"
+          d="M5 13l4 4L19 7"
         />
       </svg>
     ),
@@ -41,8 +44,7 @@ const Toast = ({ toast, onRemove }) => {
           strokeLinecap="round"
           strokeLinejoin="round"
           strokeWidth={2}
-          d="M6 18L18 6M6
-6l12 12"
+          d="M6 18L18 6M6 6l12 12"
         />
       </svg>
     ),
@@ -77,11 +79,10 @@ const Toast = ({ toast, onRemove }) => {
       </svg>
     ),
   };
+
   return (
     <div
-      className={`
- ${bgColors[type]} text-white px-4 py-3 rounded-md shadow-lg flex items-center space-x-3 mb-2 animate-slide-in
- `}
+      className={`${bgColors[type]} text-white px-4 py-3 rounded-md shadow-lg flex items-center space-x-3 mb-2 animate-slide-in`}
     >
       <div className="flex-shrink-0">{icons[type]}</div>
       <div className="flex-1">
@@ -108,6 +109,7 @@ const Toast = ({ toast, onRemove }) => {
     </div>
   );
 };
+
 export default function ToastContainer({ toasts, onRemoveToast }) {
   if (toasts.length === 0) return null;
   return (

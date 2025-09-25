@@ -1,11 +1,14 @@
 import { useState, useCallback } from "react";
+
 export const useForm = (initialValues, validationRules = {}) => {
   const [values, setValues] = useState(initialValues);
   const [errors, setErrors] = useState({});
   const [touched, setTouched] = useState({});
+
   const validateField = useCallback(
     (name, value) => {
       if (!validationRules[name]) return null;
+
       const rules = validationRules[name];
 
       // Required validation
@@ -35,6 +38,7 @@ export const useForm = (initialValues, validationRules = {}) => {
     },
     [validationRules, values]
   );
+
   const setValue = useCallback(
     (name, value) => {
       setValues((prev) => ({
@@ -52,6 +56,7 @@ export const useForm = (initialValues, validationRules = {}) => {
     },
     [errors]
   );
+
   const setTouchedField = useCallback(
     (name) => {
       setTouched((prev) => ({
@@ -68,6 +73,7 @@ export const useForm = (initialValues, validationRules = {}) => {
     },
     [validateField, values]
   );
+
   const validateForm = useCallback(() => {
     const newErrors = {};
     let isValid = true;
@@ -90,6 +96,7 @@ export const useForm = (initialValues, validationRules = {}) => {
 
     return isValid;
   }, [validateField, values, validationRules]);
+
   const resetForm = useCallback(
     (newInitialValues = initialValues) => {
       setValues(newInitialValues);
@@ -98,6 +105,7 @@ export const useForm = (initialValues, validationRules = {}) => {
     },
     [initialValues]
   );
+
   const handleInputChange = useCallback(
     (e) => {
       const { name, value, type, checked } = e.target;
@@ -106,6 +114,7 @@ export const useForm = (initialValues, validationRules = {}) => {
     },
     [setValue]
   );
+
   const handleInputBlur = useCallback(
     (e) => {
       const { name } = e.target;
@@ -113,6 +122,7 @@ export const useForm = (initialValues, validationRules = {}) => {
     },
     [setTouchedField]
   );
+  
   return {
     values,
     errors,
