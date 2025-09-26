@@ -30,3 +30,20 @@ Composants réutilisables :
 ✅ Gestion des états (loading, error, empty)
 ✅ Responsive design mobile-first
 
+Sécurité et robustesse :
+✅ Validation double (client + serveur)
+✅ Transactions database pour cohérence
+✅ Gestion d'erreurs structurée
+✅ Messages d'erreur informatifs
+
+Expérience utilisateur :
+✅ Feedback immédiat sur toutes les actions
+✅ États de chargement visuels
+✅ Confirmations pour actions destructives
+✅ Notifications non intrusives
+
+Architecture :
+✅ Composants réutilisables et modulaires
+✅ Hooks personnalisés pour la logique
+✅ Séparation claire des responsabilités
+✅ Code maintenable et extensible
