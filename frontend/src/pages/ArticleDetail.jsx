@@ -18,6 +18,20 @@ export default function ArticleDetail() {
   if (error) return <ErrorMessage message={error} />;
   if (!article) return <div>Article non trouvé</div>;
 
+  const handleDelete = async() => {
+    if (confirm("Etes-vous sûre de vouloir supprimer l'article ?")) {
+      try {
+        const result = await ApiService.deleteArticle(id)
+        console.log(result)
+        alert('Article supprimé')
+      } catch (err) {
+        alert(err.message)
+      } finally {
+        navigate('/articles')
+      }
+    }
+  }
+
   return (
     <div className="max-w-4xl mx-auto">
       <div className="mb-6">
@@ -50,20 +64,15 @@ export default function ArticleDetail() {
         <footer className="mt-8 pt-6 border-t border-gray-200">
           <div className="flex space-x-3">
             <button
-              onClick={() => navigate(`/articles/${id}/edit`)}
+              onClick={
+                console.log("")//TODO
+              }
               className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700"
             >
               Modifier
             </button>
             <button
-              onClick={() => {
-                if (
-                  confirm("Êtes-vous sûr de vouloir supprimer cet article ?")
-                ) {
-                  // Logique de suppression à implémenter
-                  navigate("/articles");
-                }
-              }}
+              onClick={handleDelete}
               className="bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700"
             >
               Supprimer

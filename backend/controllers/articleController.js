@@ -143,8 +143,7 @@ const articleController = {
         .toLowerCase()
         .normalize("NFD")
         .replace(/[\u0300-\u036f]/g, "") // Supprimer les accents
-        .replace(/[^a-z0-9\s-]/g, ""); // Garder seulement lettres, chiffres, espaces,
-      tirets
+        .replace(/[^a-z0-9\s-]/g, "") // Garder seulement lettres, chiffres, espaces,
         .replace(/\s+/g, "-") // Remplacer espaces par tirets
         .replace(/-+/g, "-") // Éviter tirets multiples
         .replace(/^-|-$/g, ""); // Supprimer tirets début/fin
