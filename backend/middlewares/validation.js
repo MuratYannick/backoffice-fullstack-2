@@ -3,13 +3,12 @@ const { body, param, validationResult } = require("express-validator");
 // Middleware pour géréer les erreurs de validation
 const handleValidationErrors = (req, res, next) => {
   const errors = validationResult(req);
-  errors.array().map(err => console.log(err))
-  if (!errors.empty) {
+  if (!errors.isEmpty()) { // ✅ Correction ici
     return res.status(400).json({
       success: false,
-      message: "Erreurs de validation",
+      message: "Erreurs de validation", // ✅ Et correction de la faute
       errors: errors.array().map((err) => ({
-        field: err.path || err.param,
+        field: err.path,
         message: err.msg,
         value: err.value,
       })),
