@@ -92,7 +92,7 @@ module.exports = (sequelize, DataTypes) => {
   }
   
   //method pour générer un JWT
-  User.prototype.generateJWT = function() {
+  User.prototype.generateJWT = async function() {
     const jwt = require('jsonwebtoken')
     const playload = {
       id: this.id,

@@ -5,12 +5,14 @@ import { useForm } from "../hooks/useForm";
 import { useToast } from "../hooks/useToast";
 import Button from "../components/ui/Button";
 import ToastContainer from "../components/ui/Toast";
+
 export default function Login() {
   const navigate = useNavigate();
   const location = useLocation();
   const { login, isAuthenticated } = useAuth();
   const { toasts, success, error, removeToast } = useToast();
   const [loading, setLoading] = useState(false);
+
   // Rediriger si déjà connecté
   useEffect(() => {
     if (isAuthenticated) {
@@ -66,6 +68,7 @@ export default function Login() {
       setLoading(false);
     }
   };
+
   const InputField = ({
     name,
     label,
@@ -84,15 +87,7 @@ export default function Login() {
         value={values[name]}
         onChange={handleInputChange}
         onBlur={handleInputBlur}
-        className={`
- w-full border rounded-md px-3 py-2
- focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500
- ${
-   errors[name] && touched[name]
-     ? "border-red-500 bg-red-50"
-     : "border-gray-300"
- }
- `}
+        className={`w-full border rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${errors[name] && touched[name] ? "border-red-500 bg-red-50" : "border-gray-300"}`}
         {...props}
       />
       {errors[name] && touched[name] && (
@@ -102,16 +97,14 @@ export default function Login() {
   );
   return (
     <div
-      className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4
-sm:px-6 lg:px-8"
+      className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8"
     >
       <ToastContainer toasts={toasts} onRemoveToast={removeToast} />
 
       <div className="max-w-md w-full space-y-8">
         <div>
           <div
-            className="mx-auto h-12 w-12 bg-blue-600 rounded-lg flex items-center
-justify-center"
+            className="mx-auto h-12 w-12 bg-blue-600 rounded-lg flex items-center justify-center"
           >
             <svg
               className="h-8 w-8 text-white"
@@ -123,9 +116,7 @@ justify-center"
                 strokeLinecap="round"
                 strokeLinejoin="round"
                 strokeWidth={2}
-                d="M12
-15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8
-0v4h8z"
+                d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
               />
             </svg>
           </div>

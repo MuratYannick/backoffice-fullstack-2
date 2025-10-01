@@ -2,15 +2,18 @@ import { Routes, Route } from "react-router-dom";
 import { AuthProvider } from "./hooks/useAuth";
 import Layout from "./components/layout/Layout";
 import ProtectedRoute from "./components/ProtectedRoute";
+
 // Pages publiques
 import Login from "./pages/Login";
 import Register from "./pages/Register";
+
 // Pages protégées
 import Home from "./pages/Home";
 import Articles from "./pages/Articles";
 import ArticleDetail from "./pages/ArticleDetail";
 import Categories from "./pages/Categories";
 import Users from "./pages/Users";
+
 function App() {
   return (
     <AuthProvider>
