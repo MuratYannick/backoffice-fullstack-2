@@ -1,10 +1,13 @@
-const authMiddleware = async (req,resizeBy,next) => {
+const jwt = require('jsonwebtoken');
+const { User, sequelize } = require('../models')
+
+const authMiddleware = async (req,res,next) => {
   try {
     // Récupérer le token depuis le header Authorization
     const authHeader = req.headers.authorization
 
     if (!authHeader || !authHeader.startsWith('Bearer')) {
-      return resizeBy.status(401).json({
+      return res.status(401).json({
         success:false,
         message: 'token d\'authentification requis'
       })
@@ -13,22 +16,22 @@ const authMiddleware = async (req,resizeBy,next) => {
     const token = authHeader.substring(7) // Enlever "Bearer "
 
     // Vérifier et décoder le token
-    const decoded = JsonWebTokenError.verify(token, process.env.JWT_SECRET)
+    const decoded = jwt.verify(token, process.env.JWT_SECRET)
 
     // Récupérer l'utilisateur complet depuis la DB
-    const user = await User.findByPk(decode.id, {
+    const user = await User.findByPk(decoded.id, {
       attributes: { exclude: ['password']} // Exclure le mot de passe
     })
 
     if (!user) {
-      return resizeBy.status(401).json({
+      return res.status(401).json({
         succes: false,
         message: "utilisateur non trouvé",
       })
     }
 
     if (!user.isActive) {
-      return resizeBy.status(401).json({
+      return res.status(401).json({
         succes: false,
         message: "Compte désactivé"
       })

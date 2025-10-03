@@ -96,6 +96,7 @@ const authController = {
 
       // générer le JWT
       const token = user.generateJWT()
+      console.log(token);
 
       // Réponse sans le mot de passe
       const userResponse = {
@@ -126,7 +127,7 @@ const authController = {
   me: async (req, res) => {
     try {
       // req.user est defini par le middleware authMiddleware
-      const user = await user.findByPk(req.user.id, {
+      const user = await User.findByPk(req.user.id, {
         attributes: { exclude: ['password']}
       })
       if (!user) {
