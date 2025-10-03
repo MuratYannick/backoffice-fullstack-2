@@ -7,6 +7,14 @@ const { seedDatabase } = require("./seeders");
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// const fnName = async (params) => {
+//   const bcrypt = require('bcrypt')
+//   const saltRounds =parseInt(process.env.BCRYPT_ROUNDS) || 10;
+//   const hashed = await bcrypt.hash("azerty", saltRounds)
+//   console.log("==============", hashed)
+// }
+// fnName();
+
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));

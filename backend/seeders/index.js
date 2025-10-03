@@ -31,16 +31,19 @@ async function seedDatabase() {
         name: "Alice Martin",
         email: "alice@example.com",
         role: "admin",
+        password: "$2b$10$L.SNOl9m3fBFBIlxXoFmaeCdwOFdZx1t/Ll3TxmxTgwSse.TCij7O",
       },
       {
         name: "Bob Durand",
         email: "bob@example.com",
         role: "editor",
+        password: "$2b$10$L.SNOl9m3fBFBIlxXoFmaeCdwOFdZx1t/Ll3TxmxTgwSse.TCij7O",
       },
       {
         name: "Claire Moreau",
         email: "claire@example.com",
         role: "author",
+        password: "$2b$10$L.SNOl9m3fBFBIlxXoFmaeCdwOFdZx1t/Ll3TxmxTgwSse.TCij7O",
       },
     ]);
 

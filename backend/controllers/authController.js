@@ -16,11 +16,11 @@ const authController = {
         role
       }, { transaction })
       
-      await transaction.commit()
+      
 
       // Générer le JWT
 
-      const token = User.generateJWT()
+      const token = user.generateJWT();
 
       // Réponse sans le mot de passe
       const userResponse = {
@@ -32,6 +32,8 @@ const authController = {
         emailVerified: user.emailVerified,
         createdAt: user.createdAt
       }
+
+      await transaction.commit()
       
       res.status(201).json({
         success: true,
