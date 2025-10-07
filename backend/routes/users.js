@@ -1,86 +1,111 @@
 const express = require("express");
-const { User, Article } = require("../models");
 const router = express.Router();
-// GET /api/users - Tous les utilisateurs
-router.get("/", async (req, res) => {
-  try {
-    const users = await User.findAll({
-      attributes: ["id", "name", "email", "role", "isActive", "createdAt"],
-      include: [
-        {
-          model: Article,
-          as: "articles",
-          attributes: ["id", "status"],
-          required: false,
-        },
-      ],
-      order: [["createdAt", "DESC"]],
-    });
+const usersController = require("../controllers/usersController");
+const {
+  authMiddleware,
+  requireRole,
+  auditMiddleware,
+} = require("../middlewares/auth");
 
-    // Ajouter statistiques pour chaque utilisateur
-    const usersWithStats = users.map((user) => {
-      const userData = user.toJSON();
-      const articles = userData.articles || [];
+// Toutes les routes utilisateurs nécessitent une authentification
+router.use(authMiddleware);
 
-      userData.stats = {
-        totalArticles: articles.length,
-        publishedArticles: articles.filter((a) => a.status === "published")
-          .length,
-        draftArticles: articles.filter((a) => a.status === "draft").length,
-      };
+// Liste des utilisateurs (admin et editor uniquement)
+router.get(
+  "/",
+  requireRole("admin", "editor"),
+  auditMiddleware("VIEW_USERS"),
+  usersController.getAll
+);
 
-      delete userData.articles;
-      return userData;
-    });
+// Détail d'un utilisateur
+router.get(
+  "/:id",
+  auditMiddleware("VIEW_USER"),
+  async (req, res, next) => {
+    const userId = parseInt(req.params.id);
 
-    res.json({
-      success: true,
-      data: usersWithStats,
-    });
-  } catch (error) {
-    console.error("Erreur récupération utilisateurs:", error);
-    res.status(500).json({
-      success: false,
-      message: "Erreur serveur",
-      error: error.message,
-    });
-  }
-});
-// GET /api/users/:id - Utilisateur spécifique
-router.get("/:id", async (req, res) => {
-  try {
-    const { id } = req.params;
-
-    const user = await User.findByPk(id, {
-      attributes: ["id", "name", "email", "role", "isActive", "createdAt"],
-      include: [
-        {
-          model: Article,
-          as: "articles",
-          attributes: ["id", "title", "status", "publishedAt", "viewCount"],
-          order: [["createdAt", "DESC"]],
-        },
-      ],
-    });
-
-    if (!user) {
-      return res.status(404).json({
-        success: false,
-        message: "Utilisateur non trouvé",
-      });
+    // Utilisateur peut voir son propre profil
+    if (req.user.id === userId) {
+      return next();
     }
 
-    res.json({
-      success: true,
-      data: user,
-    });
-  } catch (error) {
-    console.error("Erreur récupération utilisateur:", error);
-    res.status(500).json({
+    // Admin et editor peuvent voir tous les profils
+    if (["admin", "editor"].includes(req.user.role)) {
+      return next();
+    }
+
+    return res.status(403).json({
       success: false,
-      message: "Erreur serveur",
-      error: error.message,
+      message: "Accès refusé à ce profil utilisateur",
     });
-  }
-});
+  },
+  usersController.getById
+);
+
+// Création d'utilisateur (admin uniquement)
+router.post(
+  "/",
+  requireRole("admin"),
+  auditMiddleware("CREATE_USER"),
+  usersController.create
+);
+
+// Modification d'utilisateur
+router.put(
+  "/:id",
+  auditMiddleware("UPDATE_USER"),
+  async (req, res, next) => {
+    const userId = parseInt(req.params.id);
+
+    // Utilisateur peut modifier son propre profil (champs limités)
+    if (req.user.id === userId) {
+      // Limiter les champs modifiables pour un utilisateur normal
+      const allowedFields = ["name", "email"];
+      req.body = Object.keys(req.body)
+        .filter((key) => allowedFields.includes(key))
+        .reduce((obj, key) => {
+          obj[key] = req.body[key];
+          return obj;
+        }, {});
+      return next();
+    }
+
+    // Admin peut modifier tout
+    if (req.user.role === "admin") {
+      return next();
+    }
+
+    return res.status(403).json({
+      success: false,
+      message: "Accès refusé pour modifier cet utilisateur",
+    });
+  },
+  usersController.update
+);
+
+// Suppression d'utilisateur (admin uniquement)
+router.delete(
+  "/:id",
+  requireRole("admin"),
+  auditMiddleware("DELETE_USER"),
+  usersController.delete
+);
+
+// Route pour changer le rôle (admin uniquement)
+router.patch(
+  "/:id/role",
+  requireRole("admin"),
+  auditMiddleware("CHANGE_USER_ROLE"),
+  usersController.changeRole
+);
+
+// Route pour désactiver/activer un compte (admin uniquement)
+router.patch(
+  "/:id/status",
+  requireRole("admin"),
+  auditMiddleware("CHANGE_USER_STATUS"),
+  usersController.toggleStatus
+);
+
 module.exports = router;

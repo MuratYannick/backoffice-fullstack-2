@@ -1,183 +1,200 @@
-import { Link, useLocation } from "react-router-dom";
-import {/* useState ,*/ useEffect } from "react";
-// TODO
-const menuItems = [
-  {
-    name: "Tableau de bord",
-    href: "/",
-    icon: (
-      <svg
-        className="h-5 w-5"
-        fill="none"
-        viewBox="0 0 24 24"
-        stroke="currentColor"
-      >
-        <path
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          strokeWidth={2}
-          d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2H5a2 2 0 00-2-2z"
-        />
-        <path
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          strokeWidth={2}
-          d="M8 5a2 2 0 012-2h4a2 2 0 012 2v14a2 2 0 01-2 2H10a2 2 0 01-2-2V5z"
-        />
-      </svg>
-    ),
-  },
-  {
-    name: "Articles",
-    href: "/articles",
-    icon: (
-      <svg
-        className="h-5 w-5"
-        fill="none"
-        viewBox="0 0 24 24"
-        stroke="currentColor"
-      >
-        <path
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          strokeWidth={2}
-          d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"
-        />
-      </svg>
-    ),
-    badge: "12",
-  },
-  {
-    name: "Catégories",
-    href: "/categories",
-    icon: (
-      <svg
-        className="h-5 w-5"
-        fill="none"
-        viewBox="0 0 24 24"
-        stroke="currentColor"
-      >
-        <path
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          strokeWidth={2}
-          d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"
-        />
-      </svg>
-    ),
-  },
-  {
-    name: "Utilisateurs",
-    href: "/users",
-    icon: (
-      <svg
-        className="h-5 w-5"
-        fill="none"
-        viewBox="0 0 24 24"
-        stroke="currentColor"
-      >
-        <path
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          strokeWidth={2}
-          d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5 0a4 4 0 11-8-4 4 4 0 018 4z"
-        />
-      </svg>
-    ),
-  },
-  {
-    name: "Paramètres",
-    href: "/settings",
-    icon: (
-      <svg
-        className="h-5 w-5"
-        fill="none"
-        viewBox="0 0 24 24"
-        stroke="currentColor"
-      >
-        <path
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          strokeWidth={2}
-          d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"
-        />
-        <path
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          strokeWidth={2}
-          d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-        />
-      </svg>
-    ),
-  },
-];
+import { useState } from "react";
+import { NavLink, useLocation } from "react-router-dom";
+import { usePermissions } from "../ProtectedRoute";
+import {
+  Home,
+  FileText,
+  Users,
+  Folder,
+  BarChart3,
+  Settings,
+  ChevronDown,
+  Plus,
+  Eye,
+  Edit,
+  Trash2,
+} from "lucide-react";
+
+// eslint-disable-next-line
+const SidebarItem = ({to, icon: Icon, label, badge = null, children = null}) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const location = useLocation();
+  const isActive = location.pathname === to || location.pathname.startsWith(to + "/");
+  if (children) {
+    return (
+      <div className="mb-1">
+        <button
+          onClick={() => setIsOpen(!isOpen)}
+          className={`w-full flex items-center justify-between px-3 py-2 text-sm font-medium rounded-md ${isActive ? "bg-blue-100 text-blue-700" : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"}`}
+        >
+          <div className="flex items-center">
+            <Icon className="mr-3 h-5 w-5" />
+            {label}
+          </div>
+          <div className="flex items-center">
+            {badge && (
+              <span className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full mr2">
+                {badge}
+              </span>
+            )}
+            <ChevronDown
+              className={`h-4 w-4 transition-transform ${isOpen ? "rotate-180" : ""}`}
+            />
+          </div>
+        </button>
+
+        {isOpen && <div className="ml-8 mt-1 space-y-1">{children}</div>}
+      </div>
+    );
+  }
+
+  return (
+    <NavLink
+      to={to}
+      className={({ isActive }) => `flex items-center px-3 py-2 text-sm font-medium rounded-md mb-1 ${isActive ? "bg-blue-100 text-blue-700" : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"}`}
+    >
+      <Icon className="mr-3 h-5 w-5" />
+      {label}
+      {badge && (
+        <span className="ml-auto bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full">
+          {badge}
+        </span>
+      )}
+    </NavLink>
+  );
+};
+
+// eslint-disable-next-line
+const SubSidebarItem = ({ to, icon: Icon, label }) => (
+  <NavLink
+    to={to}
+    className={({ isActive }) => `flex items-center px-3 py-2 text-sm rounded-md ${isActive ? "bg-blue-50 text-blue-600 border-l-2 border-blue-600" : "text-gray-500 hover:bg-gray-50 hover:text-gray-700"}`}
+  >
+    <Icon className="mr-3 h-4 w-4" />
+    {label}
+  </NavLink>
+);
 
 export default function Sidebar({ isOpen, onClose }) {
-  const location = useLocation();
-
-  // Fermer sidebar sur changement de route (mobile)
-  useEffect(() => {
-    onClose();
-  }, [location.pathname, onClose]);
-  const isActive = (href) => {
-    if (href === "/") {
-      return location.pathname === "/";
-    }
-    return location.pathname.startsWith(href);
-  };
+  const {
+    user,
+    canManageUsers,
+    canManageCategories,
+    canCreateArticles,
+    isAdmin,
+    isEditor,
+  } = usePermissions();
 
   return (
     <>
-      {/* Overlay pour mobile */}
+      {/* Overlay mobile */}
       {isOpen && (
         <div
-          className="fixed inset-0 bg-gray-600 bg-opacity-75 transition-opacity md:hidden z-20"
+          className="fixed inset-0 bg-gray-600 bg-opacity-75 z-20 md:hidden"
           onClick={onClose}
         />
       )}
+
       {/* Sidebar */}
       <div
-        className={`fixed inset-y-0 left-0 z-30 w-64 bg-gray-900 transition duration-300 transform ${isOpen ? "translate-x-0" : "-translate-x-full"} md:translate-x-0 md:static md:inset-0`}
+        className={`fixed inset-y-0 left-0 z-30 w-64 bg-white shadow-lg transform transition-transform duration-300 ease-in-out md:translate-x-0 md:static md:inset-0 ${isOpen ? "translate-x-0" : "-translate-x-full"}`}
       >
-        <div className="flex items-center justify-center h-16 bg-gray-800">
-          <span className="text-white text-lg font-semibold">Navigation</span>
-        </div>
-        <nav className="mt-5 px-2">
-          <div className="space-y-1">
-            {menuItems.map((item) => (
-              <Link
-                key={item.name}
-                to={item.href}
-                className={`group flex items-center px-2 py-2 text-sm font-medium rounded-md transition duration-200 ${isActive(item.href) ? "bg-gray-800 text-white" : "text-gray-300 hover:bg-gray-700 hover:text-white"}`}
-              >
-                <span className="mr-3 flex-shrink-0">{item.icon}</span>
-                <span className="flex-1">{item.name}</span>
-                {item.badge && (
-                  <span
-                    className="ml-3 inline-block py-0.5 px-2 text-xs font-medium rounded-full bg-blue-600 text-white"
-                  >
-                    {item.badge}
-                  </span>
-                )}
-              </Link>
-            ))}
-          </div>
-        </nav>
-
-        {/* Footer sidebar */}
-        <div className="absolute bottom-0 left-0 right-0 p-4">
-          <div className="bg-gray-800 rounded-lg p-3">
+        <div className="flex flex-col h-full">
+          {/* Header */}
+          <div className="flex items-center justify-between h-16 px-4 border-b border-gray200">
             <div className="flex items-center">
-              <div className="flex-shrink-0">
-                <div className="h-8 w-8 bg-blue-600 rounded-full flex items-center justifycenter">
-                  <span className="text-white text-sm font-medium">A</span>
-                </div>
+              <div className="h-8 w-8 bg-blue-600 rounded-lg flex items-center justifycenter">
+                <span className="text-white font-bold text-sm">B</span>
+              </div>
+              <span className="ml-2 text-lg font-semibold text-gray-900">
+                BackOffice
+              </span>
+            </div>
+            <button
+              onClick={onClose}
+              className="md:hidden p-2 rounded-md text-gray-400 hover:text-gray-600"
+            >
+              ×
+            </button>
+          </div>
+
+          {/* User info */}
+          <div className="p-4 border-b border-gray-200 bg-gray-50">
+            <div className="flex items-center">
+              <div className="h-10 w-10 bg-blue-100 rounded-full flex items-center justifycenter">
+                <span className="text-blue-600 font-medium">
+                  {user?.name?.charAt(0) || "?"}
+                </span>
               </div>
               <div className="ml-3">
-                <p className="text-sm font-medium text-white">Admin User</p>
-                <p className="text-xs text-gray-400">admin@example.com</p>
+                <p className="text-sm font-medium text-gray-900">
+                  {user?.name}
+                </p>
+                <p className="text-xs text-gray-500 capitalize">{user?.role}</p>
               </div>
             </div>
+          </div>
+
+          {/* Navigation */}
+          <nav className="flex-1 px-4 py-4 space-y-1 overflow-y-auto">
+            <SidebarItem to="/" icon={Home} label="Dashboard" />
+            {/* Articles */}
+            <SidebarItem to="/articles" icon={FileText} label="Articles">
+              <SubSidebarItem to="/articles" icon={Eye} label="Voir tous" />
+              {canCreateArticles && (
+                <SubSidebarItem to="/articles/new" icon={Plus} label="Créer" />
+              )}
+              {(isAdmin || isEditor) && (
+                <SubSidebarItem
+                  to="/articles/pending"
+                  icon={Edit}
+                  label="En attente"
+                />
+              )}
+            </SidebarItem>
+
+            {/* Catégories */}
+            {canManageCategories && (
+              <SidebarItem to="/categories" icon={Folder} label="Catégories">
+                <SubSidebarItem
+                  to="/categories"
+                  icon={Eye}
+                  label="Voir toutes"
+                />
+                <SubSidebarItem
+                  to="/categories/new"
+                  icon={Plus}
+                  label="Créer"
+                />
+              </SidebarItem>
+            )}
+
+            {/* Utilisateurs */}
+            {canManageUsers && (
+              <SidebarItem to="/users" icon={Users} label="Utilisateurs">
+                <SubSidebarItem to="/users" icon={Eye} label="Voir tous" />
+                <SubSidebarItem to="/users/new" icon={Plus} label="Créer" />
+              </SidebarItem>
+            )}
+
+            {/* Statistiques */}
+            {isAdmin && (
+              <SidebarItem
+                to="/statistics"
+                icon={BarChart3}
+                label="Statistiques"
+              />
+            )}
+
+            {/* Paramètres */}
+            <SidebarItem to="/settings" icon={Settings} label="Paramètres" />
+          </nav>
+
+          {/* Footer */}
+          <div className="p-4 border-t border-gray-200">
+            <p className="text-xs text-gray-500 text-center">
+              © 2024 BackOffice App
+            </p>
           </div>
         </div>
       </div>
